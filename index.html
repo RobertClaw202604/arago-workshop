@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arago – AI Workshop | ARworks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --bg-navy:   #0d1220;
+      --bg-teal:   #0a1a1e;
+      --blue:      #4f8ef7;
+      --blue-dim:  #2d5fc4;
+      --orange:    #ff6b35;
+      --white:     #f0f4ff;
+      --muted:     #8a94b0;
+      --card-bg:   rgba(255,255,255,.04);
+      --border:    rgba(255,255,255,.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ─── UTILITIES ─── */
+    h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; }
+    .container   { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+    .tag         { display: inline-block; font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .fade-up     { opacity: 0; transform: translateY(30px); transition: opacity .7s ease, transform .7s ease; }
+    .fade-up.visible { opacity: 1; transform: none; }
+
+    /* staggered children */
+    .stagger > * { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+    .stagger.visible > *:nth-child(1) { transition-delay: .05s; }
+    .stagger.visible > *:nth-child(2) { transition-delay: .15s; }
+    .stagger.visible > *:nth-child(3) { transition-delay: .25s; }
+    .stagger.visible > *:nth-child(4) { transition-delay: .35s; }
+    .stagger.visible > *:nth-child(5) { transition-delay: .45s; }
+    .stagger.visible > *:nth-child(6) { transition-delay: .55s; }
+    .stagger.visible > *:nth-child(7) { transition-delay: .65s; }
+    .stagger.visible > * { opacity: 1; transform: none; }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: .9rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(15,17,23,.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem; color: var(--white); letter-spacing: .04em; }
+    .nav-logo span { color: var(--blue); }
+    .nav-cta {
+      background: var(--orange); color: #fff; font-weight: 600; font-size: .82rem;
+      padding: .45rem 1.2rem; border-radius: 99px; text-decoration: none;
+      transition: background .2s, transform .2s;
+    }
+    .nav-cta:hover { background: #e55a26; transform: scale(1.04); }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center;
+      padding: 7rem 1.5rem 4rem;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(ellipse 80% 60% at 50% 20%, #15203a 0%, var(--bg) 70%);
+    }
+
+    /* animated mesh / orbs */
+    .hero::before, .hero::after {
+      content: ''; position: absolute; border-radius: 50%; pointer-events: none;
+    }
+    .hero::before {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(79,142,247,.18) 0%, transparent 70%);
+      top: -200px; left: 50%; transform: translateX(-50%);
+      animation: pulse 8s ease-in-out infinite;
+    }
+    .hero::after {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,107,53,.1) 0%, transparent 70%);
+      bottom: 50px; right: -100px;
+      animation: pulse 10s ease-in-out infinite reverse;
+    }
+
+    /* grid overlay */
+    .hero-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(79,142,247,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: .7; transform: translateX(-50%) scale(1); }
+      50%      { opacity: 1;  transform: translateX(-50%) scale(1.12); }
+    }
+    @keyframes pulse2 {
+      0%,100% { opacity: .7; transform: scale(1); }
+      50%      { opacity: 1;  transform: scale(1.15); }
+    }
+    .hero::after { animation: pulse2 10s ease-in-out infinite reverse; }
+
+    .hero-eyebrow {
+      font-size: .75rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+      color: var(--blue); margin-bottom: 1.2rem; position: relative;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 7vw, 5.2rem); font-weight: 700; line-height: 1.1;
+      position: relative;
+      background: linear-gradient(135deg, #fff 30%, #a8c4ff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--orange) 0%, #ffb347 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      margin-top: 1.2rem; font-size: 1.05rem; color: var(--muted); max-width: 560px;
+      position: relative;
+    }
+
+    .badges {
+      display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center;
+      margin-top: 2rem; position: relative;
+    }
+    .badge {
+      display: flex; align-items: center; gap: .45rem;
+      padding: .45rem 1rem; border-radius: 99px;
+      border: 1px solid var(--border); background: rgba(255,255,255,.05);
+      font-size: .82rem; font-weight: 500; backdrop-filter: blur(8px);
+    }
+    .badge svg { width: 14px; height: 14px; opacity: .7; }
+
+    .hero-cta-wrap { margin-top: 2.5rem; position: relative; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: linear-gradient(135deg, var(--orange), #e55a26);
+      color: #fff; font-weight: 700; font-size: 1rem;
+      padding: .85rem 2.2rem; border-radius: 99px; text-decoration: none;
+      box-shadow: 0 0 40px rgba(255,107,53,.3);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: scale(1.05); box-shadow: 0 0 60px rgba(255,107,53,.45); }
+
+    .scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: .4rem;
+      color: var(--muted); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+      animation: bounce 2.2s ease-in-out infinite;
+    }
+    .scroll-hint::after {
+      content: ''; width: 1px; height: 36px;
+      background: linear-gradient(to bottom, var(--blue), transparent);
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50%      { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ─── GOALS SECTION ─── */
+    .goals {
+      background: var(--bg-navy);
+      padding: 6rem 1.5rem;
+    }
+    .section-label {
+      font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--blue); margin-bottom: .8rem;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 700; line-height: 1.2;
+    }
+    .section-title em { font-style: normal; color: var(--orange); }
+    .section-sub { color: var(--muted); font-size: .95rem; margin-top: .6rem; max-width: 600px; }
+
+    .goals-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.2rem; margin-top: 3rem;
+    }
+    .goal-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+      padding: 2rem 1.8rem;
+      transition: border-color .3s, transform .3s;
+    }
+    .goal-card:hover { border-color: rgba(79,142,247,.4); transform: translateY(-4px); }
+    .goal-letter {
+      width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.3rem; margin-bottom: 1rem;
+    }
+    .goal-card:first-child .goal-letter { background: rgba(79,142,247,.15); color: var(--blue); }
+    .goal-card:last-child  .goal-letter { background: rgba(255,107,53,.15); color: var(--orange); }
+    .goal-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: .5rem; }
+    .goal-card p  { color: var(--muted); font-size: .88rem; line-height: 1.6; }
+
+    /* ─── PROGRAM ─── */
+    .program { padding: 6rem 1.5rem; background: var(--bg); }
+    .program-header { margin-bottom: 4rem; }
+
+    .timeline { position: relative; }
+    .timeline::before {
+      content: ''; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(to bottom, var(--blue), var(--orange), transparent);
+      border-radius: 2px;
+    }
+
+    .block {
+      display: grid; grid-template-columns: 72px 1fr;
+      gap: 0 1.8rem; margin-bottom: 3rem; position: relative;
+    }
+    .block-num {
+      width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem;
+      position: relative; z-index: 2; margin-top: 0; align-self: start;
+    }
+    .block-body {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+      padding: 1.8rem 2rem; transition: border-color .3s;
+    }
+    .block-body:hover { border-color: rgba(255,255,255,.15); }
+
+    .block-icon {
+      font-size: 2rem; margin-bottom: .8rem; line-height: 1;
+    }
+    .block-title {
+      font-size: 1.25rem; font-weight: 700; margin-bottom: .5rem;
+      display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
+    }
+    .block-tag {
+      font-size: .68rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+      padding: .2rem .7rem; border-radius: 99px;
+    }
+    .block-desc { color: var(--muted); font-size: .9rem; line-height: 1.7; }
+    .block-desc strong { color: var(--white); }
+
+    /* per-block accents */
+    .block:nth-child(1) .block-num { background: rgba(79,142,247,.2); color: var(--blue); box-shadow: 0 0 0 4px rgba(79,142,247,.08); }
+    .block:nth-child(1) .block-tag { background: rgba(79,142,247,.15); color: var(--blue); }
+    .block:nth-child(2) .block-num { background: rgba(100,200,120,.2); color: #64c878; box-shadow: 0 0 0 4px rgba(100,200,120,.08); }
+    .block:nth-child(2) .block-tag { background: rgba(100,200,120,.15); color: #64c878; }
+    .block:nth-child(3) .block-num { background: rgba(255,107,53,.2); color: var(--orange); box-shadow: 0 0 0 4px rgba(255,107,53,.08); }
+    .block:nth-child(3) .block-tag { background: rgba(255,107,53,.15); color: var(--orange); }
+    .block:nth-child(4) .block-num { background: rgba(180,100,255,.2); color: #b464ff; box-shadow: 0 0 0 4px rgba(180,100,255,.08); }
+    .block:nth-child(4) .block-tag { background: rgba(180,100,255,.15); color: #b464ff; }
+    .block:nth-child(5) .block-num { background: rgba(255,210,50,.2); color: #ffd232; box-shadow: 0 0 0 4px rgba(255,210,50,.08); }
+    .block:nth-child(5) .block-tag { background: rgba(255,210,50,.15); color: #ffd232; }
+
+    /* ─── BLOCK 4 – card grid ─── */
+    .tech-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem; margin-top: 1.4rem;
+    }
+    .tech-card {
+      border-radius: 12px; padding: 1.2rem 1rem;
+      display: flex; flex-direction: column; gap: .5rem;
+      border: 1px solid var(--border);
+      transition: transform .25s, border-color .25s;
+    }
+    .tech-card:hover { transform: translateY(-3px); }
+    .tech-card .tc-num {
+      font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.6rem; line-height: 1;
+    }
+    .tech-card .tc-name { font-weight: 600; font-size: .88rem; }
+    .tech-card .tc-desc { font-size: .77rem; color: var(--muted); line-height: 1.4; }
+
+    .tc-1 { background: rgba(79,142,247,.08); }  .tc-1:hover { border-color: var(--blue); }
+    .tc-1 .tc-num { color: var(--blue); }
+    .tc-2 { background: rgba(100,200,120,.08); } .tc-2:hover { border-color: #64c878; }
+    .tc-2 .tc-num { color: #64c878; }
+    .tc-3 { background: rgba(255,107,53,.08); }  .tc-3:hover { border-color: var(--orange); }
+    .tc-3 .tc-num { color: var(--orange); }
+    .tc-4 { background: rgba(180,100,255,.08); } .tc-4:hover { border-color: #b464ff; }
+    .tc-4 .tc-num { color: #b464ff; }
+    .tc-5 { background: rgba(20,200,210,.08); }  .tc-5:hover { border-color: #14c8d2; }
+    .tc-5 .tc-num { color: #14c8d2; }
+    .tc-6 { background: rgba(255,210,50,.08); }  .tc-6:hover { border-color: #ffd232; }
+    .tc-6 .tc-num { color: #ffd232; }
+    .tc-plus { background: rgba(255,60,100,.1); border-color: rgba(255,60,100,.3); }
+    .tc-plus:hover { border-color: #ff3c64; }
+    .tc-plus .tc-num { color: #ff3c64; }
+
+    /* ─── WOW ─── */
+    .wow-pills { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+    .wow-pill {
+      font-size: .8rem; font-weight: 500;
+      padding: .3rem .85rem; border-radius: 99px;
+      border: 1px solid rgba(255,107,53,.3); color: var(--orange);
+      background: rgba(255,107,53,.08);
+    }
+
+    /* ─── CTA SECTION ─── */
+    .cta-section {
+      background: var(--bg-teal);
+      padding: 7rem 1.5rem;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(79,142,247,.12) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      pointer-events: none;
+    }
+    .cta-section h2 {
+      font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 700; position: relative;
+      margin-bottom: 1rem;
+    }
+    .cta-section p { color: var(--muted); font-size: 1rem; max-width: 540px; margin: 0 auto 2.5rem; position: relative; }
+
+    .btn-big {
+      display: inline-flex; align-items: center; gap: .6rem;
+      background: linear-gradient(135deg, var(--orange), #e55a26);
+      color: #fff; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.15rem;
+      padding: 1rem 2.8rem; border-radius: 99px; text-decoration: none;
+      box-shadow: 0 0 50px rgba(255,107,53,.35);
+      transition: transform .2s, box-shadow .2s;
+      position: relative;
+    }
+    .btn-big:hover { transform: scale(1.05); box-shadow: 0 0 70px rgba(255,107,53,.5); }
+    .btn-big::after {
+      content: '→'; font-size: 1.2rem;
+    }
+
+    .cta-meta { margin-top: 1.8rem; display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; }
+    .cta-meta-item { display: flex; align-items: center; gap: .5rem; color: var(--muted); font-size: .85rem; }
+    .cta-meta-item svg { width: 16px; height: 16px; color: var(--blue); }
+
+    /* ─── SPEAKER ─── */
+    .speaker {
+      background: var(--bg-navy); padding: 5rem 1.5rem;
+    }
+    .speaker-inner {
+      display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: center; max-width: 700px;
+    }
+    .speaker-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-dim), var(--blue));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.8rem; color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 4px rgba(79,142,247,.2);
+    }
+    .speaker-name { font-size: 1.3rem; font-weight: 700; }
+    .speaker-role { color: var(--muted); font-size: .88rem; margin-top: .3rem; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--bg); border-top: 1px solid var(--border);
+      padding: 2.5rem 1.5rem; text-align: center;
+      color: var(--muted); font-size: .82rem;
+    }
+    footer strong { color: var(--white); }
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      .timeline::before { left: 22px; }
+      .block { grid-template-columns: 56px 1fr; gap: 0 1rem; }
+      .block-num { width: 44px; height: 44px; font-size: .95rem; }
+      .block-body { padding: 1.3rem 1.2rem; }
+      .speaker-inner { grid-template-columns: 1fr; text-align: center; }
+      .speaker-avatar { margin: 0 auto; }
+      .tech-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Arago <span>AI</span> Workshop</div>
+  <a class="nav-cta" href="#reszvetel">Részvétel</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+
+  <p class="hero-eyebrow fade-up">ARworks · Belső Kollégáknak · 2026</p>
+
+  <h1 class="fade-up" style="transition-delay:.1s">
+    Arago – <span>AI Workshop</span>
+  </h1>
+
+  <p class="hero-sub fade-up" style="transition-delay:.2s">
+    60 perc alatt megmutatjuk, hogyan dolgozz okosabban az AI-jal — tippek, WOW példák és élő demók.
+  </p>
+
+  <div class="badges fade-up" style="transition-delay:.3s">
+    <span class="badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      2026 Június vége – Július eleje
+    </span>
+    <span class="badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      60 perc
+    </span>
+    <span class="badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Arago tárgyaló
+    </span>
+  </div>
+
+  <div class="hero-cta-wrap fade-up" style="transition-delay:.4s">
+    <a class="btn-primary" href="#reszvetel">Részvételi szándék jelzése</a>
+  </div>
+
+  <div class="scroll-hint">Görgets le</div>
+</section>
+
+<!-- GOALS -->
+<section class="goals">
+  <div class="container">
+    <p class="section-label fade-up">Miért érdemes eljönni?</p>
+    <h2 class="section-title fade-up">Két nagy <em>cél</em>, egy óra</h2>
+    <p class="section-sub fade-up">Nem elméleti előadás — hanem használható tudás és valódi motiváció.</p>
+
+    <div class="goals-grid stagger">
+      <div class="goal-card">
+        <div class="goal-letter">A</div>
+        <h3>ChatGPT Boost</h3>
+        <p>Ha már használod az alapokat, megmutatjuk a következő szintet: modellválasztás, prompt technikák, memória, projektek — kis tippek, nagy különbség.</p>
+      </div>
+      <div class="goal-card">
+        <div class="goal-letter">B</div>
+        <h3>WOW pillanatok</h3>
+        <p>Élő demók és valódi példák, amik megmutatják, mire képes ma az AI. Kíváncsiság felkeltés, inspiráció — hogy te is lásd a lehetőséget.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRAM -->
+<section class="program">
+  <div class="container">
+    <div class="program-header">
+      <p class="section-label fade-up">Program</p>
+      <h2 class="section-title fade-up">5 blokk, <em>60 perc</em></h2>
+      <p class="section-sub fade-up">Minden blokknak megvan a maga karaktere — az alapoktól a konkrét eszközökig.</p>
+    </div>
+
+    <div class="timeline">
+
+      <!-- Block 1 -->
+      <div class="block fade-up">
+        <div class="block-num">1</div>
+        <div class="block-body">
+          <div class="block-icon">🧠</div>
+          <div class="block-title">
+            Alapok &amp; Icebreaking
+            <span class="block-tag">Keret</span>
+          </div>
+          <p class="block-desc">
+            Az AI nem keresőmotor — <strong>valószínűségi rendszer</strong>, ami tokenekben gondolkodik. Megismerjük a platformokat és modelleket: <strong>Claude</strong> (kiemelve), NotebookLM, Perplexity. Icebreaking: mindenki kipróbálja, mit tud.
+          </p>
+        </div>
+      </div>
+
+      <!-- Block 2 -->
+      <div class="block fade-up">
+        <div class="block-num">2</div>
+        <div class="block-body">
+          <div class="block-icon">⚡</div>
+          <div class="block-title">
+            ChatGPT Boost
+            <span class="block-tag">Tippek</span>
+          </div>
+          <p class="block-desc">
+            Azoknak, akik már használják az alapokat: <strong>modellválasztás</strong> a feladathoz, <strong>prompt-író prompt</strong> technika, <strong>memória &amp; projektek</strong> beállítása. Kis változtatások, drámai javulás.
+          </p>
+        </div>
+      </div>
+
+      <!-- Block 3 -->
+      <div class="block fade-up">
+        <div class="block-num">3</div>
+        <div class="block-body">
+          <div class="block-icon">🤩</div>
+          <div class="block-title">
+            WOW Példák
+            <span class="block-tag">Demó</span>
+          </div>
+          <p class="block-desc">
+            <strong>Vibe kódolt weboldalak</strong> — kinaiauto.com bemutatása: hogyan készült el AI-jal. Majd élő OpenClaw demó: <strong>résztvevők ötleteket adnak</strong>, az AI megcsinálja és elküldi nekik.
+          </p>
+          <div class="wow-pills">
+            <span class="wow-pill">🌐 kinaiauto.com</span>
+            <span class="wow-pill">🤖 OpenClaw élő</span>
+            <span class="wow-pill">✨ Vibe Coding</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 4 -->
+      <div class="block fade-up">
+        <div class="block-num">4</div>
+        <div class="block-body">
+          <div class="block-icon">🛠️</div>
+          <div class="block-title">
+            6+1 Technika
+            <span class="block-tag">Eszköztár</span>
+          </div>
+          <p class="block-desc">Feladathoz a megfelelő tool — ne kalapáccsal verd be a csavart.</p>
+
+          <div class="tech-grid">
+            <div class="tech-card tc-1">
+              <span class="tc-num">1</span>
+              <span class="tc-name">Normál promptolás</span>
+              <span class="tc-desc">A legtöbb feladathoz elég egy jó prompt</span>
+            </div>
+            <div class="tech-card tc-2">
+              <span class="tc-num">2</span>
+              <span class="tc-name">AI Ügynökök / Gems</span>
+              <span class="tc-desc">ChatGPT &amp; Gemini személyre szabott asszisztensek</span>
+            </div>
+            <div class="tech-card tc-3">
+              <span class="tc-num">3</span>
+              <span class="tc-name">Excel + Claude</span>
+              <span class="tc-desc">Táblázatok, adatelemzés Claude bővítménnyel</span>
+            </div>
+            <div class="tech-card tc-4">
+              <span class="tc-num">4</span>
+              <span class="tc-name">Automatizáció</span>
+              <span class="tc-desc">Make.ai, n8n — folyamatok nélküled futnak</span>
+            </div>
+            <div class="tech-card tc-5">
+              <span class="tc-num">5</span>
+              <span class="tc-name">Claude Co-work</span>
+              <span class="tc-desc">Design &amp; tartalom együtt, valódi kollaboráció</span>
+            </div>
+            <div class="tech-card tc-6">
+              <span class="tc-num">6</span>
+              <span class="tc-name">Vibe Coding</span>
+              <span class="tc-desc">Weboldalak, appok kódolás nélkül</span>
+            </div>
+            <div class="tech-card tc-plus">
+              <span class="tc-num">+1</span>
+              <span class="tc-name">OpenClaw</span>
+              <span class="tc-desc">AI asszisztens, ami tényleg elvégzi a munkát</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 5 -->
+      <div class="block fade-up">
+        <div class="block-num">5</div>
+        <div class="block-body">
+          <div class="block-icon">🚀</div>
+          <div class="block-title">
+            Záró + Next Steps
+            <span class="block-tag">Folytatás</span>
+          </div>
+          <p class="block-desc">
+            Workshop utáni <strong>anyagküldés</strong> minden résztvevőnek, példaprojektek, hasznos linkek gyűjteménye. Hogyan tovább — <strong>kísérletezz, próbálj, kérdezz</strong>. Az AI-hoz való viszonyod személyes döntés, de a lehetőség adott.
+          </p>
+        </div>
+      </div>
+
+    </div><!-- /timeline -->
+  </div>
+</section>
+
+<!-- SPEAKER -->
+<section class="speaker">
+  <div class="container">
+    <p class="section-label fade-up">Előadó</p>
+    <div class="speaker-inner fade-up">
+      <div class="speaker-avatar">SB</div>
+      <div>
+        <div class="speaker-name">Budaházy Szabolcs</div>
+        <div class="speaker-role">Tulajdonos-ügyvezető · ARworks · VR / AR / AI megoldások</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="reszvetel">
+  <h2 class="fade-up">Gyere el — <span style="color:var(--orange)">ne hagyd ki!</span></h2>
+  <p class="fade-up">60 perc, amit nem bánod meg. Jelezd részvételi szándékodat az alábbi gombbal.</p>
+  <a class="btn-big fade-up" href="mailto:szbudahazy@arworks.com?subject=Arago%20AI%20Workshop%20részvétel&body=Szia%20Szabolcs%2C%0A%0AJelzem%2C%20hogy%20részt%20veszek%20az%20Arago%20AI%20Workshopon.%0A%0AÜdvözlettel">
+    Részvételi szándék jelzése
+  </a>
+
+  <div class="cta-meta fade-up">
+    <span class="cta-meta-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Június vége – Július eleje
+    </span>
+    <span class="cta-meta-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      60 perc
+    </span>
+    <span class="cta-meta-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Arago tárgyaló
+    </span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 <strong>ARworks</strong> · <a href="https://arworks.hu" target="_blank">arworks.hu</a> · Minden jog fenntartva.</p>
+</footer>
+
+<script>
+  // Intersection Observer – fade-up & stagger
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-up, .stagger').forEach(el => observer.observe(el));
+
+  // Trigger hero items immediately
+  document.querySelectorAll('.hero .fade-up').forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), 150 + i * 120);
+  });
+</script>
+</body>
+</html>
